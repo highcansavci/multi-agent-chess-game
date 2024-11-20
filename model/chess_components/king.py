@@ -12,7 +12,10 @@ class King(BasePiece, ABC):
         super().__init__(initial_position)
         self.type = "king"
         self.castling = False
-        self.reward = 0.5
+        self.reward = 5
+
+    def get_attack_path(self, from_pos, to_pos):
+        return []
 
 
 class BlackKing(King):
@@ -26,6 +29,12 @@ class BlackKing(King):
             return []
         moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
         return model.white_king_location in moves
+    
+    def check_control_target(self, player_is_white, initial_move, target_piece, model, target_position):
+        if initial_move:
+            return []
+        moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
+        return target_position in moves
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
         return self.get_all_possible_moves(player_is_white, initial_move, target_piece, model) if not model.white_moves else []
@@ -37,16 +46,19 @@ class BlackKing(King):
             directions += [(0, -2)]
         if model.black_short_castling:
             directions += [(0, 2)]
+
         for dir_ in directions:
             target_row = self.position_x + dir_[0]
             target_column = self.position_y + dir_[1]
+
             if 0 <= target_row < ViewConfig.DIMENSION and 0 <= target_column < ViewConfig.DIMENSION:
                 end_piece = model.board[target_row][target_column]
                 if end_piece is not None and end_piece.color == "black":
                     continue
-                moves.append((target_row, target_column))
-            else:
-                continue
+
+                # Check if the target square is threatened by white pieces
+                if not is_square_threatened((target_row, target_column), "white", model):
+                    moves.append((target_row, target_column))
         return moves
 
 
@@ -61,6 +73,12 @@ class WhiteKing(King):
             return []
         moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
         return model.black_king_location in moves
+    
+    def check_control_target(self, player_is_white, initial_move, target_piece, model, target_position):
+        if initial_move:
+            return []
+        moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
+        return target_position in moves
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
         return self.get_all_possible_moves(player_is_white, initial_move, target_piece, model) if model.white_moves else []
@@ -72,14 +90,47 @@ class WhiteKing(King):
             directions += [(0, -2)]
         if model.white_short_castling:
             directions += [(0, 2)]
+
         for dir_ in directions:
             target_row = self.position_x + dir_[0]
             target_column = self.position_y + dir_[1]
+
             if 0 <= target_row < ViewConfig.DIMENSION and 0 <= target_column < ViewConfig.DIMENSION:
                 end_piece = model.board[target_row][target_column]
                 if end_piece is not None and end_piece.color == "white":
                     continue
-                moves.append((target_row, target_column))
-            else:
-                continue
+
+                # Check if the target square is threatened by black pieces
+                if not is_square_threatened((target_row, target_column), "black", model):
+                    moves.append((target_row, target_column))
         return moves
+
+
+def is_square_threatened(square, opponent_color, model):
+    """
+    Check if a specific square is threatened by any opponent's pieces.
+
+    Args:
+        square (tuple): The target square (row, col).
+        opponent_color (str): The color of the opponent ("white" or "black").
+        model: The chess model containing the board state.
+
+    Returns:
+        bool: True if the square is threatened, False otherwise.
+    """
+    for row in range(ViewConfig.DIMENSION):
+        for col in range(ViewConfig.DIMENSION):
+            piece = model.board[row][col]
+
+            if piece is not None and piece.type != "king" and piece.color == opponent_color:
+                # Check if the piece can control the target square
+                possible_moves = piece.get_all_possible_moves(
+                    player_is_white=(opponent_color == "white"),
+                    initial_move=False,
+                    target_piece=None,
+                    model=model
+                )
+                if square in possible_moves:
+                    return True
+
+    return False

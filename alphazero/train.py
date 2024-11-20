@@ -13,8 +13,9 @@ from gym_wrapper.environment import ChessGym
 if __name__ == "__main__":
     p.init()
     env = ChessGym()
-    env.make("white")
-    state = env.reset()
+    player = "white"
+    env.make_optimized(player)
+    state = env.reset_optimized()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ChessNet().to(device)

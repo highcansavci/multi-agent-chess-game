@@ -11,7 +11,10 @@ class Knight(BasePiece, ABC):
     def __init__(self, initial_position):
         super().__init__(initial_position)
         self.type = "knight"
-        self.reward = 0.08
+        self.reward = 8
+
+    def get_attack_path(self, from_pos, to_pos):
+        return []
 
 
 class BlackKnight(Knight):
@@ -25,6 +28,12 @@ class BlackKnight(Knight):
             return []
         moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
         return model.white_king_location in moves
+    
+    def check_control_target(self, player_is_white, initial_move, target_piece, model, target_position):
+        if initial_move:
+            return []
+        moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
+        return target_position in moves
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
         return self.get_all_possible_moves(player_is_white, initial_move, target_piece, model) if not model.white_moves else []
@@ -56,6 +65,12 @@ class WhiteKnight(Knight):
             return []
         moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
         return model.black_king_location in moves
+    
+    def check_control_target(self, player_is_white, initial_move, target_piece, model, target_position):
+        if initial_move:
+            return []
+        moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
+        return target_position in moves
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
         return self.get_all_possible_moves(player_is_white, initial_move, target_piece, model) if model.white_moves else []

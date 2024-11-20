@@ -41,8 +41,8 @@ class Node:
         for action, prob in enumerate(policy):
             if prob > 0:
                 state = copy.deepcopy(self.state)
-                next_state = self.env.simulate(state, ((action // 64 // 8, action // 64 % 8), ((action % 64) // 8, (action % 64) % 8)))
-                next_state = self.env.change_perspective([next_state], self.env.get_opponent(state.player_side))[0]
+                self.env.step(state, ((action // 64 // 8, action // 64 % 8), ((action % 64) // 8, (action % 64) % 8)))
+                next_state = state
                 child = Node(self.env, next_state, self, action, prob)
                 self.children.append(child)
 

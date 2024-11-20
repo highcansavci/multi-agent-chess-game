@@ -11,7 +11,7 @@ from alphazero.alpha_mcts.node import Node
 class MCTSParallel:
     def __init__(self, env, model, device):
         self.env = env
-        self.num_searches = 1000
+        self.num_searches = 1
         self.device = device
         self.model = model
         self.dirchlet_epsilon = 0.25
@@ -36,7 +36,6 @@ class MCTSParallel:
             spg.root = Node(self.env, states[i], visit_count=1)
             spg.root.expand(spg_policy)
 
-        print("Searches started.")
         for search in range(self.num_searches):
             for spg in sp_games:
                 spg.node = None
@@ -45,8 +44,8 @@ class MCTSParallel:
                 while node.is_fully_expanded():
                     node = node.select()
 
-                value, is_terminal = self.env.get_reward_and_terminated(node.state)
-                value = -value
+                white_value, black_value, is_terminal = self.env.get_reward_and_terminated(node.state)
+                value = white_value - black_value if spg.model.white_moves else black_value - white_value
 
                 if is_terminal:
                     node.backpropagate(value)
@@ -77,7 +76,6 @@ class MCTSParallel:
 
                 node.expand(spg_policy)
                 node.backpropagate(spg_value)
-        print("Searches finished.")
 
     def decode_action(self, action):
         from_encoding, to_encoding = action // 64, action % 64

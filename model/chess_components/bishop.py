@@ -11,7 +11,43 @@ class Bishop(BasePiece, ABC):
     def __init__(self, initial_position):
         super().__init__(initial_position)
         self.type = "bishop"
-        self.reward = 0.1
+        self.reward = 1
+
+    def get_attack_path(self, from_pos, to_pos):
+        """
+        Get the path of squares the bishop attacks between from_pos and to_pos.
+
+        Args:
+            from_pos (tuple): Starting position of the bishop (row, col).
+            to_pos (tuple): Target position (row, col).
+
+        Returns:
+            list: List of positions (row, col) representing the attack path,
+                  excluding from_pos and to_pos. Returns an empty list if the
+                  target is not on a valid diagonal or the path is blocked.
+        """
+        path = []
+
+        # Calculate the difference in rows and columns
+        row_diff = to_pos[0] - from_pos[0]
+        col_diff = to_pos[1] - from_pos[1]
+
+        # Ensure the move is diagonal (absolute row difference must equal column difference)
+        if abs(row_diff) != abs(col_diff):
+            return path  # Not a valid bishop move
+
+        # Determine the direction of movement
+        step_row = row_diff // abs(row_diff)  # Step in row direction (+1 or -1)
+        step_col = col_diff // abs(col_diff)  # Step in column direction (+1 or -1)
+
+        # Traverse the path from from_pos to to_pos
+        current_row, current_col = from_pos[0] + step_row, from_pos[1] + step_col
+        while (current_row, current_col) != to_pos:
+            path.append((current_row, current_col))
+            current_row += step_row
+            current_col += step_col
+
+        return path
 
 
 class BlackBishop(Bishop):
@@ -29,6 +65,12 @@ class BlackBishop(Bishop):
             return []
         moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
         return model.white_king_location in moves
+    
+    def check_control_target(self, player_is_white, initial_move, target_piece, model, target_position):
+        if initial_move:
+            return []
+        moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
+        return target_position in moves
 
     def get_all_possible_moves(self, player_is_white, initial_move, target_piece, model):
         moves = []
@@ -62,6 +104,12 @@ class WhiteBishop(Bishop):
             return []
         moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
         return model.black_king_location in moves
+    
+    def check_control_target(self, player_is_white, initial_move, target_piece, model, target_position):
+        if initial_move:
+            return []
+        moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
+        return target_position in moves
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
         return self.get_all_possible_moves(player_is_white, initial_move, target_piece,

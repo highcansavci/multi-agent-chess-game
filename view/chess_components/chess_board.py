@@ -12,15 +12,15 @@ from view.config.view_config import ViewConfig
 class ChessScreen:
     def __init__(self, board: Board):
         self.colors = [ViewConfig.COLOR_BEIGE, ViewConfig.COLOR_BROWN]
-        self.board = board
+        self.model = board
         self.screen = p.display.set_mode((ViewConfig.WIDTH, ViewConfig.HEIGHT))
         self.clock = p.time.Clock()
         self.screen.fill(ViewConfig.COLOR_BEIGE)
-        self.draw_game()
+        self.draw_game(self.model)
 
-    def draw_game(self):
+    def draw_game(self, model):
         self.draw_board()
-        self.draw_pieces()
+        self.draw_pieces(model)
 
     def draw_board(self):
         for i in range(ViewConfig.DIMENSION):
@@ -29,10 +29,10 @@ class ChessScreen:
                             p.Rect(j * ViewConfig.SQ_SIZE, i * ViewConfig.SQ_SIZE,
                                    ViewConfig.SQ_SIZE, ViewConfig.SQ_SIZE))
 
-    def draw_pieces(self):
+    def draw_pieces(self, model):
         for i in range(ViewConfig.DIMENSION):
             for j in range(ViewConfig.DIMENSION):
-                piece = self.board.board[i][j]
+                piece = model.board[i][j]
                 if piece is not None:
                     image = PiecesImagePrototype.IMAGES[(piece.color, piece.type)]
                     self.screen.blit(image, p.Rect(j * ViewConfig.SQ_SIZE, i * ViewConfig.SQ_SIZE,

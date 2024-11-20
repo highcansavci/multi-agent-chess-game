@@ -11,7 +11,33 @@ class Queen(BasePiece, ABC):
     def __init__(self, initial_position):
         super().__init__(initial_position)
         self.type = "queen"
-        self.reward = 0.25
+        self.reward = 25
+
+    def get_attack_path(self, from_pos, to_pos):
+        """
+        Get attack path for a Queen (combination of Rook and Bishop logic).
+        """
+        path = []
+        row_diff = to_pos[0] - from_pos[0]
+        col_diff = to_pos[1] - from_pos[1]
+
+        if abs(row_diff) == abs(col_diff):  # Diagonal
+            step_row = row_diff // abs(row_diff)
+            step_col = col_diff // abs(col_diff)
+        elif row_diff == 0:  # Horizontal
+            step_row, step_col = 0, col_diff // abs(col_diff)
+        elif col_diff == 0:  # Vertical
+            step_row, step_col = row_diff // abs(row_diff), 0
+        else:
+            return path  # Invalid path for a Queen
+
+        current_row, current_col = from_pos[0] + step_row, from_pos[1] + step_col
+        while (current_row, current_col) != to_pos:
+            path.append((current_row, current_col))
+            current_row += step_row
+            current_col += step_col
+
+        return path
 
 
 class BlackQueen(Queen):
@@ -25,6 +51,12 @@ class BlackQueen(Queen):
             return []
         moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
         return model.white_king_location in moves
+    
+    def check_control_target(self, player_is_white, initial_move, target_piece, model, target_position):
+        if initial_move:
+            return []
+        moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
+        return target_position in moves
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
         return self.get_all_possible_moves(player_is_white, initial_move, target_piece,
@@ -62,6 +94,12 @@ class WhiteQueen(Queen):
             return []
         moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
         return model.black_king_location in moves
+    
+    def check_control_target(self, player_is_white, initial_move, target_piece, model, target_position):
+        if initial_move:
+            return []
+        moves = self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
+        return target_position in moves
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
         return self.get_all_possible_moves(player_is_white, initial_move, target_piece,

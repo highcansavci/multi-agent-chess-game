@@ -30,6 +30,26 @@ class ChessGym:
         self.state_space = StateSpace(self.chess_controller)
         self.action_space = ActionSpace(self.chess_controller)
 
+    def make_optimized(self, player_side):
+        assert player_side == "white" or player_side == "black"
+        self.chess_board = Board((ViewConfig.WIDTH, ViewConfig.HEIGHT), player_side)
+        self.chess_controller = ChessController(self.chess_board, None)
+        self.state_space = StateSpace(self.chess_controller)
+        self.action_space = ActionSpace(self.chess_controller)
+
+    def copy(self, env):
+        self.chess_board = copy.deepcopy(env.chess_board)
+        self.chess_screen = ChessScreen(self.chess_board)
+        self.chess_controller = ChessController(self.chess_board, self.chess_screen)
+        self.state_space = StateSpace(self.chess_controller)
+        self.action_space = ActionSpace(self.chess_controller)
+
+    def copy_optimized(self, env):
+        self.chess_board = copy.deepcopy(env.chess_board)
+        self.chess_controller = ChessController(self.chess_board, None)
+        self.state_space = StateSpace(self.chess_controller)
+        self.action_space = ActionSpace(self.chess_controller)
+
     def close(self):
         del self.action_space
         del self.state_space
@@ -44,9 +64,15 @@ class ChessGym:
 
     def reset(self):
         return self.chess_controller.reset()
+    
+    def reset_optimized(self):
+        return self.chess_controller.reset_optimized()
 
-    def step(self, action):
-        return self.chess_controller.step(action)
+    def step(self, model, action):
+        return self.chess_controller.step(model, action)
+    
+    def step_inference(self, model, action):
+        return self.chess_controller.step_inference(model, action)
 
     def simulate(self, model, action):
         child_state = self.chess_controller.simulate(model, action)
@@ -54,23 +80,11 @@ class ChessGym:
         return child_state
 
     def get_reward_and_terminated(self, model):
-        return model.reward, model.checkmate or model.stalemate
-
+        return model.white_reward, model.black_reward, model.checkmate or model.stalemate
 
     def get_opponent(self, player):
         return "black" if player == "white" else "white"
-
-    def change_perspective(self, states, player):
-        for state in states:
-            state.board = np.rot90(state.board, k=2, axes=(0, 1))
-            state.update_positions()
-            state.white_king_location = state.update_white_king_location()
-            state.black_king_location = state.update_black_king_location()
-            state.player_side = self.get_opponent(state.player_side)
-            state.reward = -state.reward
-        return states
-
-
+    
 
 class ActionSpace:
     def __init__(self, chess_controller):
@@ -96,15 +110,16 @@ if __name__ == '__main__':
     env = ChessGym()
     env.make("white")
     state = env.reset()
-    score = 0
+    white_score = 0
+    black_score = 0
     done = False
 
     while not done:
         from_pos, to_pos = env.action_space.sample()
-        next_state, reward, done, _ = env.step((from_pos, to_pos))
-        state = next_state
-        score += reward
-        print(f"Score: {score}")
+        white_reward, black_reward, done, _, _ = env.step_inference(state, (from_pos, to_pos))
+        white_score += white_reward
+        black_score += black_reward
+        print(f"White Score: {white_score}, Black Score: {black_score}")
         time.sleep(0.2)
 
     env.close()

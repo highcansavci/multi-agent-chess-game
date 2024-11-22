@@ -26,7 +26,7 @@ class AlphaZeroParallel:
         
         # Adjusted parameters for T440p
         self.num_iterations = 20            # Reduced from 100 to allow faster iteration cycles
-        self.num_self_play_iterations = 25 # Reduced from 500 to manage memory and CPU load
+        self.num_self_play_iterations = 300 # Reduced from 1500 to manage memory and CPU load
         self.num_parallel_games = 4         # Reduced from 20 based on CPU cores (2 cores, 4 threads)
         self.num_epochs = 50               # Reduced from 1000 to prevent overfitting and save time
         self.batch_size = 64               # Reduced from 128 to manage memory usage
@@ -62,7 +62,10 @@ class AlphaZeroParallel:
             action_probs = np.zeros(env.action_space.action_size)
             for child in spg.root.children:
                 action_probs[child.action_taken] = child.visit_count
-            action_probs /= np.sum(action_probs)
+            if np.sum(action_probs) > 0:
+                action_probs /= np.sum(action_probs)
+            else:
+                action_probs = np.ones_like(action_probs) / len(action_probs)  # Assign uniform probability
             
             # Only add Dirichlet noise in the early game (first 30 moves)
             if move_count < 30:
@@ -197,12 +200,13 @@ class AlphaZeroParallel:
         print(f"Training model in epoch {epoch}.")
         
         # Process all data in batches
-        random.shuffle(memory)
+        memory_list = list(memory)
+        random.shuffle(memory_list)
         total_loss = 0
         total_samples = 0
         
-        for i in range(0, len(memory), self.batch_size):
-            batch = memory[i:i + self.batch_size]
+        for i in range(0, len(memory_list), self.batch_size):
+            batch = memory_list[i:i + self.batch_size]
             loss, batch_size = self.train_batch(batch)
             
             # Backward pass and optimization
@@ -221,7 +225,7 @@ class AlphaZeroParallel:
         try:
             for iteration in range(self.num_iterations):
                 self.model.eval()
-                
+                self.replay_buffer.clear()
                 print(f"Iteration {iteration}: Self-play is starting...")
                 # Parallel self-play
                 for iteration in range(self.num_self_play_iterations // self.num_parallel_games):
@@ -233,8 +237,7 @@ class AlphaZeroParallel:
                 # Training
                 self.model.train()
                 for epoch in range(self.num_epochs):
-                    sample = random.sample(self.replay_buffer, self.batch_size)
-                    self.train(sample, epoch)
+                    self.train(self.replay_buffer, epoch)
                 
                 # Save checkpoints
                 print(f"Iteration {iteration} is finished. Saving the models and optimizers...")

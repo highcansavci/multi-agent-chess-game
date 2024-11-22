@@ -34,11 +34,13 @@ class ChessController:
 
     def reset(self):
         self.model.initialize_board()
+        self.model.move_count = 0
         self.view.draw_game(self.model)
         return self.model
     
     def reset_optimized(self):
         self.model.initialize_board()
+        self.model.move_count = 0
         return self.model
 
     def check_movement(self, event):
@@ -358,7 +360,7 @@ class ChessController:
                 model.black_reward += model.calculate_check_reward()
         
         
-        if (model.is_white_stalemate or model.is_black_stalemate) and not model.is_white_check and not model.is_black_check:
+        if (model.is_white_stalemate or model.is_black_stalemate) and not model.is_white_check and not model.is_black_check or model.move_count >= model.MAX_MOVES:
             model.stalemate = True
             model.running = False
             return model.white_reward, model.black_reward, True, {"stalemate": True}, result_action
@@ -366,6 +368,7 @@ class ChessController:
         model.check_situation_pawn_promotion()
         # Switch turns
         model.white_moves = not model.white_moves
+        model.move_count += 1
         model.initial_move = False
         return model.white_reward, model.black_reward, model.checkmate or model.stalemate, {}, result_action
 
@@ -564,7 +567,7 @@ class ChessController:
                 model.black_reward += model.calculate_check_reward()
         
         
-        if (model.is_white_stalemate or model.is_black_stalemate) and not model.is_white_check and not model.is_black_check:
+        if (model.is_white_stalemate or model.is_black_stalemate) and not model.is_white_check and not model.is_black_check or model.move_count >= model.MAX_MOVES:
             model.stalemate = True
             model.running = False
             return model.white_reward, model.black_reward, True, {"stalemate": True}, result_action
@@ -573,6 +576,7 @@ class ChessController:
         self.view.draw_game(model)
         # Switch turns
         model.white_moves = not model.white_moves
+        model.move_count += 1
         model.initial_move = False
         self.view.clock.tick(ViewConfig.MAX_FPS)
         p.display.flip()

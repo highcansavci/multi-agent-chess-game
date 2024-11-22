@@ -31,7 +31,10 @@ class MCTSParallel:
             spg_policy = policy[i]
             _, valid_moves = self.env.chess_board.generate_all_valid_moves(states[i])
             spg_policy *= valid_moves
-            spg_policy /= np.sum(spg_policy)
+            if np.sum(spg_policy) > 0:
+                spg_policy /= np.sum(spg_policy)
+            else:
+                spg_policy = np.zeros_like(spg_policy)  # Prevents propagation of NaN
 
             spg.root = Node(self.env, states[i], visit_count=1)
             spg.root.expand(spg_policy)
@@ -72,7 +75,10 @@ class MCTSParallel:
 
                 _, valid_moves = self.env.chess_board.generate_all_valid_moves(states[i])
                 spg_policy *= valid_moves
-                spg_policy /= np.sum(spg_policy)
+                if np.sum(spg_policy) > 0:
+                    spg_policy /= np.sum(spg_policy)
+                else:
+                    spg_policy = np.zeros_like(spg_policy)  # Prevents propagation of NaN
 
                 node.expand(spg_policy)
                 node.backpropagate(spg_value)

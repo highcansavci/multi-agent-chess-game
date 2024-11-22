@@ -46,8 +46,10 @@ class Board:
         self.checkmate_reward = 500
         self.stalemate_reward = 250
         self.castling_reward = 5
-        self.check_reward = 1
+        self.check_reward = 10
+        self.move_count = 0
         self.STATE_SIZE = (8, 8, 16)
+        self.MAX_MOVES = 500
 
     def initialize_board(self):
         if self.player_side == "white":

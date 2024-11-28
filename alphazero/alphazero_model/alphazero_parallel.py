@@ -56,6 +56,7 @@ class AlphaZeroParallel:
         
         while True:
             state = np.array([spg.model])
+            state = env.change_perspective(state)
             mcts.search(state, [spg])
             
             # Calculate action probabilities from visit counts
@@ -91,57 +92,34 @@ class AlphaZeroParallel:
             # Make move
             from_pos = ((action // 64) // 8, (action // 64) % 8)
             to_pos = ((action % 64) // 8, (action % 64) % 8)
-            white_value, black_value, is_terminal, _, result_action = env.step(spg.model, (from_pos, to_pos))
+            value, is_terminal, _, result_action = env.step(spg.model, (from_pos, to_pos))
             
             move_count += 1
             
             if is_terminal:
-                return AlphaZeroParallel.process_game_result(game_memory, white_value, black_value, env, result_action)
-            
-    @staticmethod
-    def scale_reward(reward):
-        return torch.clamp(torch.tensor(math.copysign(math.log1p(abs(reward)), reward)), -10, 10) / 10
+                return AlphaZeroParallel.process_game_result(game_memory, value, env, result_action)
 
     @staticmethod
-    def process_game_result(game_memory, white_value, black_value, env, result_action):
+    def process_game_result(game_memory, value, env, result_action):
         """
         Process the result of a completed game for AlphaZero training
         """
         if result_action is None:
             return []
             
-        game_result = white_value - black_value
-        game_result = AlphaZeroParallel.scale_reward(game_result)
+        game_result = value
         return_memory = []
         
         for hist_state, hist_action_probs, hist_player in game_memory:
             # Convert state to network input format
             processed_state = env.chess_board.get_state_(hist_state)
-            
-            # Get the last actual move made
-            from_pos, to_pos = result_action
-            
-            # Create move index for the policy vector
-            move_idx = from_pos[0] * 8 * 8 + from_pos[1] * 8 + to_pos[0] * 8 + to_pos[1]
-            
-            # Update action probabilities based on the actual move taken
-            processed_action_probs = hist_action_probs.copy()
-            if move_idx < len(processed_action_probs):
-                # Increase probability for the actually chosen move
-                # This helps the network learn from successful moves
-                processed_action_probs[move_idx] *= 1.2  # Boost factor for selected moves
-                
-                # Renormalize probabilities
-                prob_sum = sum(processed_action_probs)
-                if prob_sum > 0:
-                    processed_action_probs = [p/prob_sum for p in processed_action_probs]
-            
+
             # Calculate outcome from perspective of current player
             hist_outcome = game_result if hist_player == "white" else -game_result
             
             return_memory.append((
                 processed_state,
-                processed_action_probs,
+                hist_action_probs,
                 hist_outcome
             ))
         
@@ -228,8 +206,8 @@ class AlphaZeroParallel:
                 self.replay_buffer.clear()
                 print(f"Iteration {iteration}: Self-play is starting...")
                 # Parallel self-play
-                for iteration in range(self.num_self_play_iterations // self.num_parallel_games):
-                    print(f"Parallel self-play iteration {iteration} is started.")
+                for iteration_ in range(self.num_self_play_iterations // self.num_parallel_games):
+                    print(f"Parallel self-play iteration {iteration_} is started.")
                     self.base_env.reset_optimized()
                     self.replay_buffer.extend(self.self_play()) 
                 print(f"Self-play is finished. Training is starting...")

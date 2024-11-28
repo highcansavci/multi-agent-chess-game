@@ -27,16 +27,14 @@ if __name__ == '__main__':
     record_env = VideoRecorder(env_, "random_action.mp4")
     env_.make("white")
     state = env_.reset()
-    white_score = 0
-    black_score = 0
+    score = 0
     done = False
 
     while not done:
         from_pos, to_pos = env_.action_space.sample()
-        white_reward, black_reward, done, _, _ = env_.step_inference(state, (from_pos, to_pos))
-        white_score += white_reward
-        black_score += black_reward
-        print(f"White Score: {white_score}, Black Score: {black_score}")
+        reward, done, _, _ = env_.step_inference(state, (from_pos, to_pos))
+        score += reward
+        print(f"Score: {score}")
         record_env.record()
         time.sleep(0.2)
 

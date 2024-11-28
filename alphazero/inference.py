@@ -20,23 +20,21 @@ if __name__ == "__main__":
     record_env = VideoRecorder(env_, "alphazero.mp4")
     env_.make("white")
     state = env_.reset()
-    white_score = 0
-    black_score = 0
+    score = 0
     done = False
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ChessNet()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
-    model.load_state_dict(torch.load("model_5.pt", map_location=device, weights_only=True))
-    optimizer.load_state_dict(torch.load("optimizer_5.pt", map_location=device, weights_only=True))
+    model.load_state_dict(torch.load("model_0.pt", map_location=device, weights_only=True))
+    optimizer.load_state_dict(torch.load("optimizer_0.pt", map_location=device, weights_only=True))
     mcts = MCTSParallel(env_, model, device)
     alpha_zero = AlphaZeroParallel(model, optimizer, env_, device)
 
     while not done:
         from_pos, to_pos = alpha_zero.inference(mcts)
-        white_reward, black_reward, done, _, _ = env_.step_inference(state, (from_pos, to_pos))
-        white_score += white_reward
-        black_score += black_reward
-        print(f"White Score: {white_score}, Black Score: {black_score}")
+        reward, done, _, _ = env_.step_inference(state, (from_pos, to_pos))
+        score += reward
+        print(f"Score: {score}")
         record_env.record()
         time.sleep(1)
 

@@ -54,7 +54,7 @@ class BlackBishop(Bishop):
     def __init__(self, initial_position):
         super().__init__(initial_position)
         self.color = "black"
-        self.state = [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+        self.state = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
         return self.get_all_possible_moves(player_is_white, initial_move, target_piece,
@@ -97,7 +97,7 @@ class WhiteBishop(Bishop):
     def __init__(self, initial_position):
         super().__init__(initial_position)
         self.color = "white"
-        self.state = [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
 
     def check_control(self, player_is_white, initial_move, target_piece, model):
         if initial_move:

@@ -37,3 +37,6 @@ class BasePiece(ABC):
     def move(self, position):
         self.position_x, self.position_y = position
         self.is_moved = True
+
+    def adjust_piece_state(self):
+        self.state = self.state[6:] + self.state[:6]

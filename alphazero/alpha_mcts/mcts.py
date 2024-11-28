@@ -11,7 +11,7 @@ from alphazero.alpha_mcts.node import Node
 class MCTSParallel:
     def __init__(self, env, model, device):
         self.env = env
-        self.num_searches = 1
+        self.num_searches = 400
         self.device = device
         self.model = model
         self.dirchlet_epsilon = 0.25
@@ -47,8 +47,8 @@ class MCTSParallel:
                 while node.is_fully_expanded():
                     node = node.select()
 
-                white_value, black_value, is_terminal = self.env.get_reward_and_terminated(node.state)
-                value = white_value - black_value if spg.model.white_moves else black_value - white_value
+                value, is_terminal = self.env.get_reward_and_terminated(node.state)
+                value = -value
 
                 if is_terminal:
                     node.backpropagate(value)

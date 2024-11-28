@@ -74,13 +74,18 @@ class ChessGym:
     def step_inference(self, model, action):
         return self.chess_controller.step_inference(model, action)
 
-    def simulate(self, model, action):
-        child_state = self.chess_controller.simulate(model, action)
-        self.chess_controller.undo_move()
-        return child_state
+    def change_perspective(self, states):
+        for state_ in states:
+            state_.board = np.rot90(state_.board, k=2, axes=(0, 1))
+            state_.change_perspective()
+            state_.update_positions()
+            state_.white_king_location = state_.update_white_king_location()
+            state_.black_king_location = state_.update_black_king_location()
+            state_.player_side = self.get_opponent(state_.player_side)
+        return states
 
     def get_reward_and_terminated(self, model):
-        return model.white_reward, model.black_reward, model.checkmate or model.stalemate
+        return model.reward, model.checkmate or model.stalemate
 
     def get_opponent(self, player):
         return "black" if player == "white" else "white"
@@ -110,16 +115,14 @@ if __name__ == '__main__':
     env = ChessGym()
     env.make("white")
     state = env.reset()
-    white_score = 0
-    black_score = 0
+    score = 0
     done = False
 
     while not done:
         from_pos, to_pos = env.action_space.sample()
-        white_reward, black_reward, done, _, _ = env.step_inference(state, (from_pos, to_pos))
-        white_score += white_reward
-        black_score += black_reward
-        print(f"White Score: {white_score}, Black Score: {black_score}")
+        reward, done, _, _ = env.step_inference(state, (from_pos, to_pos))
+        score += reward
+        print(f"Score: {score}")
         time.sleep(0.2)
 
     env.close()

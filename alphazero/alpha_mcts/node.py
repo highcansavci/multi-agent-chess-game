@@ -42,7 +42,7 @@ class Node:
             if prob > 0:
                 state = copy.deepcopy(self.state)
                 self.env.step(state, ((action // 64 // 8, action // 64 % 8), ((action % 64) // 8, (action % 64) % 8)))
-                next_state = state
+                next_state = self.env.change_perspective([state])[0]
                 child = Node(self.env, next_state, self, action, prob)
                 self.children.append(child)
 

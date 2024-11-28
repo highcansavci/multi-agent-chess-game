@@ -41,12 +41,7 @@ class Board:
         self.is_black_stalemate = False
         self.stalemate = False
         self.castling_done = False
-        self.white_reward = 0
-        self.black_reward = 0
-        self.checkmate_reward = 500
-        self.stalemate_reward = 250
-        self.castling_reward = 5
-        self.check_reward = 10
+        self.reward = 0
         self.move_count = 0
         self.STATE_SIZE = (8, 8, 16)
         self.MAX_MOVES = 500
@@ -269,18 +264,6 @@ class Board:
                 state_array[i, j, :] = np.array(each_state)
         return state_array
 
-    def calculate_move_reward(self, piece):
-        return 0 if piece is None else piece.get_reward()
-
-    def calculate_check_reward(self):
-        return self.check_reward
-
-    def calculate_checkmate_reward(self):
-        return self.check_reward
-
-    def calculate_stalemate_reward(self):
-        return self.stalemate_reward
-
     def generate_all_valid_moves(self):
         moves = []
         encoded_moves = np.zeros(64 * 64)
@@ -328,6 +311,14 @@ class Board:
                 if piece is not None:
                     piece.position_x = i
                     piece.position_y = j
+
+    def change_perspective(self):
+        for i in range(ViewConfig.DIMENSION):
+            for j in range(ViewConfig.DIMENSION):
+                piece = self.board[i][j]
+                if piece is not None:
+                    piece.adjust_piece_state()
+                    piece.color = "white" if piece.color == "black" else "black"
 
     def update_white_king_location(self):
         for i in range(ViewConfig.DIMENSION):

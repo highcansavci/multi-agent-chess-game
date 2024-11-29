@@ -29,14 +29,16 @@ if __name__ == "__main__":
     optimizer.load_state_dict(torch.load("optimizer_0.pt", map_location=device, weights_only=True))
     mcts = MCTSParallel(env_, model, device)
     alpha_zero = AlphaZeroParallel(model, optimizer, env_, device)
+    move_count = 0
 
     while not done:
-        from_pos, to_pos = alpha_zero.inference(mcts)
+        from_pos, to_pos = alpha_zero.inference(mcts, move_count)
         reward, done, _, _ = env_.step_inference(state, (from_pos, to_pos))
         score += reward
         print(f"Score: {score}")
         record_env.record()
         time.sleep(1)
+        move_count += 1
 
     record_env.export()
     env_.close()

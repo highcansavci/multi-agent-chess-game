@@ -290,7 +290,7 @@ class Board:
         for i in range(ViewConfig.DIMENSION):
             for j in range(ViewConfig.DIMENSION):
                 piece = model.board[i][j]
-                if piece is not None:
+                if piece is not None and piece.color == "white":
                     moves.extend([((i, j), move) for move in piece.get_all_valid_moves(model.player_side == "white",
                                                                                        None, None,
                                                                                        model)])
@@ -313,12 +313,26 @@ class Board:
                     piece.position_y = j
 
     def change_perspective(self):
-        for i in range(ViewConfig.DIMENSION):
-            for j in range(ViewConfig.DIMENSION):
-                piece = self.board[i][j]
+        """
+        Swaps the colors of the pieces on the board:
+        - Black pieces become White pieces
+        - White pieces become Black pieces
+        """
+        color_map = {
+            "BlackRook": WhiteRook, "BlackKnight": WhiteKnight, "BlackBishop": WhiteBishop,
+            "BlackQueen": WhiteQueen, "BlackKing": WhiteKing, "BlackPawn": WhitePawn,
+            "WhiteRook": BlackRook, "WhiteKnight": BlackKnight, "WhiteBishop": BlackBishop,
+            "WhiteQueen": BlackQueen, "WhiteKing": BlackKing, "WhitePawn": BlackPawn
+        }
+
+        for row_idx, row in enumerate(self.board):
+            for col_idx, piece in enumerate(row):
                 if piece is not None:
-                    piece.adjust_piece_state()
-                    piece.color = "white" if piece.color == "black" else "black"
+                    piece_type = type(piece).__name__
+                    if piece_type in color_map:
+                        # Swap the piece to its opposite color
+                        new_piece_class = color_map[piece_type]
+                        self.board[row_idx][col_idx] = new_piece_class((row_idx, col_idx))
 
     def update_white_king_location(self):
         for i in range(ViewConfig.DIMENSION):

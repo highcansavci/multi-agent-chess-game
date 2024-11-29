@@ -11,7 +11,7 @@ from alphazero.alpha_mcts.node import Node
 class MCTSParallel:
     def __init__(self, env, model, device):
         self.env = env
-        self.num_searches = 400
+        self.num_searches = 1
         self.device = device
         self.model = model
         self.dirchlet_epsilon = 0.25

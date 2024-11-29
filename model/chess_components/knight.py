@@ -46,7 +46,7 @@ class BlackKnight(Knight):
             target_column = self.position_y + dir_[1] * 1
             if 0 <= target_row < ViewConfig.DIMENSION and 0 <= target_column < ViewConfig.DIMENSION:
                 end_piece = model.board[target_row][target_column]
-                if end_piece is not None and end_piece.color == "black":
+                if end_piece is not None and end_piece.color == self.color:
                     continue
                 moves.append((target_row, target_column))
             else:
@@ -83,7 +83,7 @@ class WhiteKnight(Knight):
             target_column = self.position_y + dir_[1]
             if 0 <= target_row < ViewConfig.DIMENSION and 0 <= target_column < ViewConfig.DIMENSION:
                 end_piece = model.board[target_row][target_column]
-                if end_piece is not None and end_piece.color == "white":
+                if end_piece is not None and end_piece.color == self.color:
                     continue
                 moves.append((target_row, target_column))
             else:

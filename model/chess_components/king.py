@@ -37,7 +37,7 @@ class BlackKing(King):
         return target_position in moves
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
-        return self.get_all_possible_moves(player_is_white, initial_move, target_piece, model) if not model.white_moves else []
+        return self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
 
     def get_all_possible_moves(self, player_is_white, initial_move, target_piece, model):
         moves = []
@@ -53,12 +53,13 @@ class BlackKing(King):
 
             if 0 <= target_row < ViewConfig.DIMENSION and 0 <= target_column < ViewConfig.DIMENSION:
                 end_piece = model.board[target_row][target_column]
-                if end_piece is not None and end_piece.color == "black":
+                if end_piece is not None and end_piece.color == self.color:
                     continue
 
                 # Check if the target square is threatened by white pieces
-                if not is_square_threatened((target_row, target_column), "white", model):
+                if not is_square_threatened((target_row, target_column), "black" if self.color == "white" else "white", model):
                     moves.append((target_row, target_column))
+        print("Black King moves: ", moves)
         return moves
 
 
@@ -81,7 +82,7 @@ class WhiteKing(King):
         return target_position in moves
 
     def get_all_valid_moves(self, player_is_white, initial_move, target_piece, model):
-        return self.get_all_possible_moves(player_is_white, initial_move, target_piece, model) if model.white_moves else []
+        return self.get_all_possible_moves(player_is_white, initial_move, target_piece, model)
 
     def get_all_possible_moves(self, player_is_white, initial_move, target_piece, model):
         moves = []
@@ -97,12 +98,13 @@ class WhiteKing(King):
 
             if 0 <= target_row < ViewConfig.DIMENSION and 0 <= target_column < ViewConfig.DIMENSION:
                 end_piece = model.board[target_row][target_column]
-                if end_piece is not None and end_piece.color == "white":
+                if end_piece is not None and end_piece.color == self.color:
                     continue
 
                 # Check if the target square is threatened by black pieces
-                if not is_square_threatened((target_row, target_column), "black", model):
+                if not is_square_threatened((target_row, target_column), "black" if self.color == "white" else "white", model):
                     moves.append((target_row, target_column))
+        print("White King moves: ", moves)
         return moves
 
 
@@ -124,6 +126,12 @@ def is_square_threatened(square, opponent_color, model):
 
             if piece is not None and piece.type != "king" and piece.color == opponent_color:
                 # Check if the piece can control the target square
+                if piece.type == "pawn" and piece.check_control_target(player_is_white=(opponent_color == "white"),
+                    initial_move=False,
+                    target_piece=None,
+                    model=model,
+                    target_position=square):
+                    return True
                 possible_moves = piece.get_all_possible_moves(
                     player_is_white=(opponent_color == "white"),
                     initial_move=False,

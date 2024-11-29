@@ -13,7 +13,7 @@ class Pawn(BasePiece, ABC):
         super().__init__(initial_position)
         self.type = "pawn"
         self.reward = 1
-        self.initial_pawn_move = False
+        self.initial_pawn_move = True
     
     def get_attack_path(self, from_pos, to_pos):
         return []
@@ -85,13 +85,12 @@ class BlackPawn(Pawn):
         # Diagonal captures
         if row + 1 < ViewConfig.DIMENSION and col - 1 >= 0:
             target_piece = model.board[row + 1][col - 1]
-            if target_piece is not None and target_piece.color == "white":
+            if target_piece is not None and target_piece.color != self.color:
                 moves.append((row + 1, col - 1))
         if row + 1 < ViewConfig.DIMENSION and col + 1 < ViewConfig.DIMENSION:
             target_piece = model.board[row + 1][col + 1]
-            if target_piece is not None and target_piece.color == "white":
+            if target_piece is not None and target_piece.color != self.color:
                 moves.append((row + 1, col + 1))
-
         return moves
 
 
@@ -156,11 +155,10 @@ class WhitePawn(Pawn):
         # Diagonal captures
         if row - 1 >= 0 and col - 1 >= 0:
             target_piece = model.board[row - 1][col - 1]
-            if target_piece is not None and target_piece.color == "black":
+            if target_piece is not None and target_piece.color != self.color:
                 moves.append((row - 1, col - 1))
         if row - 1 >= 0 and col + 1 < ViewConfig.DIMENSION:
             target_piece = model.board[row - 1][col + 1]
-            if target_piece is not None and target_piece.color == "black":
+            if target_piece is not None and target_piece.color != self.color:
                 moves.append((row - 1, col + 1))
-
         return moves

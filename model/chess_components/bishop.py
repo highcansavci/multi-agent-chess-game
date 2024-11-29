@@ -83,7 +83,7 @@ class BlackBishop(Bishop):
                     end_piece = model.board[target_row][target_column]
                     if end_piece is None:
                         moves.append((target_row, target_column))
-                    elif end_piece.color == "white":
+                    elif end_piece.color != self.color:
                         moves.append((target_row, target_column))
                         break
                     else:
@@ -124,9 +124,9 @@ class WhiteBishop(Bishop):
                 target_column = self.position_y + dir_[1] * i
                 if 0 <= target_row < ViewConfig.DIMENSION and 0 <= target_column < ViewConfig.DIMENSION:
                     end_piece = model.board[target_row][target_column]
-                    if end_piece is None:
+                    if end_piece is None or end_piece.color != self.color:
                         moves.append((target_row, target_column))
-                    elif end_piece.color == "black":
+                    elif end_piece.color != self.color:
                         moves.append((target_row, target_column))
                         break
                     else:

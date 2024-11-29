@@ -215,6 +215,8 @@ class ChessController:
         model.white_moves = not model.white_moves
         model.move_count += 1
         model.initial_move = False
+        if piece.type == "pawn":
+            piece.initial_pawn_move = False
         return model.reward, model.checkmate or model.stalemate, {}, result_action
 
     def step_inference(self, model, action, sophisticated_sampling=True):
@@ -399,6 +401,8 @@ class ChessController:
         model.white_moves = not model.white_moves
         model.move_count += 1
         model.initial_move = False
+        if piece.type == "pawn":
+            piece.initial_pawn_move = False
         self.view.clock.tick(ViewConfig.MAX_FPS)
         p.display.flip()
         return model.reward, model.checkmate or model.stalemate, {}, result_action

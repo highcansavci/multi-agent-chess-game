@@ -70,7 +70,7 @@ class BlackRook(Rook):
                     end_piece = model.board[target_row][target_column]
                     if end_piece is None:
                         moves.append((target_row, target_column))
-                    elif end_piece.color == "white":
+                    elif end_piece.color != self.color:
                         moves.append((target_row, target_column))
                         break
                     else:
@@ -113,7 +113,7 @@ class WhiteRook(Rook):
                     end_piece = model.board[target_row][target_column]
                     if end_piece is None:
                         moves.append((target_row, target_column))
-                    elif end_piece.color == "black":
+                    elif end_piece.color != self.color:
                         moves.append((target_row, target_column))
                         break
                     else:

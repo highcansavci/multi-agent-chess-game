@@ -228,30 +228,30 @@ class AlphaZeroParallel:
             self.pool.close()
             self.pool.join()
 
-    def inference(self, mcts) -> List[Tuple]:
+    def inference(self, mcts, move_count) -> List[Tuple]:
         spg = SPG(self.base_env)
-        move_count = 0  # Track number of moves
-        
+
         state = np.array([spg.model])
+        state = self.base_env.change_perspective(state)
         mcts.search(state, [spg])
-            
+
         # Calculate action probabilities from visit counts
         action_probs = np.zeros(self.base_env.action_space.action_size)
         for child in spg.root.children:
             action_probs[child.action_taken] = child.visit_count
         action_probs /= np.sum(action_probs)
-            
+
         # Only add Dirichlet noise in the early game (first 30 moves)
         if move_count < 30:
             dirichlet_noise = np.random.dirichlet([self.dirichlet_alpha] * self.base_env.action_space.action_size)
-            action_probs = (1 - self.exploration_fraction) * action_probs + self.exploration_fraction * dirichlet_noise
+            action_probs = ((1 - self.exploration_fraction) * action_probs + self.exploration_fraction * dirichlet_noise)
             # Early game: temperature = 1.0 for exploration
             temperature = 1.0
         else:
             # Late game: minimal temperature for exploitation
             temperature = 0.01
-            
-            
+
+
         # Select action based on temperature
         if temperature > 0.01:  # Early game - use temperature
             temperature_action_probs = action_probs ** (1 / temperature)
@@ -259,7 +259,7 @@ class AlphaZeroParallel:
             action = np.random.choice(self.base_env.action_space.action_size, p=temperature_action_probs)
         else:  # Late game - select best move
             action = np.argmax(action_probs)
-            
+
         # Make move
         from_pos = ((action // 64) // 8, (action // 64) % 8)
         to_pos = ((action % 64) // 8, (action % 64) % 8)

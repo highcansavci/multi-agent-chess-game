@@ -66,7 +66,7 @@ Graph: Cumulative reward and MCTS search depth over training epochs.
 Video Demo
 
 Watch a demonstration of the trained AlphaZero agent in action:
-[alphazero/alphazero.mp4]
+[Watch](alphazero/alphazero.mp4)
 
 Future Work
 

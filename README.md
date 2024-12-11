@@ -18,7 +18,8 @@ Installation
 
 Clone the repository:
 
-git clone https://github.com/highcansavci/multi-agent-chess-game.git
+git clone https://github.com/highcansavci/multi-agent-chess-game.git  
+
 cd multi-agent-chess-game
 
 Install dependencies:
